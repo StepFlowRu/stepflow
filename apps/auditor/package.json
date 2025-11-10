@@ -1,0 +1,11 @@
+{
+	"name": "@stepflow/auditor",
+	"version": "0.0.0",
+	"type": "module",
+	"scripts": {
+		"dev": "builder"
+	},
+	"devDependencies": {
+		"@stepflow/builder": "workspace:*"
+	}
+}

@@ -1,0 +1,10 @@
+{
+	"extends": "@stepflow/configs/jsconfig",
+	"include": ["./builder.config.js"],
+	"compilerOptions": {
+		"outDir": "dist",
+		"target": "esnext",
+		"module": "nodenext",
+		"types": ["node"]
+	}
+}

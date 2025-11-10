@@ -1,0 +1,9 @@
+{
+	"extends": "@stepflow/configs/jsconfig",
+	"include": ["eslint.config.js"],
+	"compilerOptions": {
+		"target": "esnext",
+		"module": "nodenext",
+		"types": ["node"]
+	}
+}

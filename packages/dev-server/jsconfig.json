@@ -1,0 +1,9 @@
+{
+	"extends": "@stepflow/configs/jsconfig",
+	"include": ["src"],
+	"compilerOptions": {
+		"target": "esnext",
+		"module": "nodenext",
+		"types": ["node"]
+	}
+}
