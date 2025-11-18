@@ -16,7 +16,7 @@ importers:
         version: 9.39.1
       '@stepflow/configs':
         specifier: workspace:*
-        version: link:packages/configs
+        version: link:tools/configs
       '@types/node':
         specifier: ^22.19.0
         version: 22.19.0
@@ -40,21 +40,27 @@ importers:
     devDependencies:
       '@stepflow/builder':
         specifier: workspace:*
-        version: link:../../packages/builder
+        version: link:../../tools/builder
 
-  packages/builder:
+  packages/logger:
+    dependencies:
+      '@stepflow/utils':
+        specifier: workspace:*
+        version: link:../utils
+
+  packages/utils: {}
+
+  tools/builder:
     devDependencies:
       '@stepflow/dev-server':
         specifier: workspace:*
         version: link:../dev-server
 
-  packages/cli: {}
+  tools/cli: {}
 
-  packages/configs: {}
+  tools/configs: {}
 
-  packages/dev-server: {}
-
-  packages/logger: {}
+  tools/dev-server: {}
 
 packages:
 
