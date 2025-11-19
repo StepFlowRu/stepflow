@@ -16,12 +16,14 @@ import { isPrimitive } from "@stepflow/utils";
  * @typedef {Object} LoggerOptions
  * @property {string} prefix
  * @property {LogLevel} initialLevel
+ * @property {boolean} withTimestamp
  */
 
 /** @type {LoggerOptions} */
 const defaultOptions = {
 	prefix: "",
 	initialLevel: "ERROR",
+	withTimestamp: false,
 };
 
 /** @type {Record<LogLevel, number>} */
@@ -32,6 +34,22 @@ const logLevelStat = {
 	ERROR: 3,
 };
 
+/** @type {Record<LogLevel, string>} */
+const logLevelToLogStyleMap = {
+	DEBUG: "color: orange;",
+	INFO: "color: blue;",
+	WARN: "color: yellow;",
+	ERROR: "color: red;",
+};
+
+/** @type {Record<LogLevel, (message?: any, ...optionalParams: any[]) => void>} */
+const logLevelToLogFunction = {
+	DEBUG: console.debug,
+	INFO: console.info,
+	WARN: console.warn,
+	ERROR: console.error,
+};
+
 /**
  * Logger class for logging something
  */
@@ -40,6 +58,8 @@ export class Logger {
 	#prefix;
 	/** @type {LogLevel} */
 	#level;
+	/** @type {boolean} */
+	#withTimestamp;
 
 	/**
 	 * @constructor
@@ -47,10 +67,11 @@ export class Logger {
 	 */
 	constructor(options = defaultOptions) {
 		/** @type {LoggerOptions} */
-		const { prefix, initialLevel } = { ...defaultOptions, ...options };
+		const { prefix, initialLevel, withTimestamp } = { ...defaultOptions, ...options };
 
 		this.#prefix = prefix;
 		this.#level = initialLevel;
+		this.#withTimestamp = withTimestamp;
 	}
 
 	/**
@@ -88,39 +109,53 @@ export class Logger {
 	/**
 	 * Main log function to print messages
 	 *
-	 * @param {LogLevel} level
+	 * @param {LogLevel} logLevel
 	 * @param {any} message
 	 * @param {...any[]} optionalParams
+	 * @returns {void}
 	 */
-	#print(level, message, ...optionalParams) {
-		if (!this.#canPrint(level)) return;
-		const prefix = `[${this.#prefix}]:`;
-		const formattedMessage = isPrimitive(message) ? [`${prefix} ${message}`] : [prefix, message];
-
-		switch (level) {
-			case "DEBUG":
-				console.debug(...formattedMessage, optionalParams);
-				break;
-			case "INFO":
-				console.info(...formattedMessage, optionalParams);
-				break;
-			case "WARN":
-				console.warn(...formattedMessage, optionalParams);
-				break;
-			case "ERROR":
-				console.error(...formattedMessage, optionalParams);
-				break;
-			default:
-				throw new Error(`Unknown log leve: ${level}`);
-		}
+	#print(logLevel, message, ...optionalParams) {
+		if (!this.#canPrint(logLevel)) return;
+		const prefix = this.#createPrefix();
+		const colorizedPrefixWithMessage = this.#colorizePrefixWithMessage(logLevel, prefix, message);
+		logLevelToLogFunction[logLevel](...colorizedPrefixWithMessage, ...optionalParams);
 	}
 
 	/**
 	 * Check if logger can print message related to log level
 	 *
 	 * @param {LogLevel} printLevel
+	 * @returns {boolean}
 	 */
 	#canPrint(printLevel) {
 		return logLevelStat[printLevel] >= logLevelStat[this.#level];
+	}
+
+	/**
+	 * Create log prefix
+	 *
+	 * @returns {string}
+	 */
+	#createPrefix() {
+		let prefix = `[${this.#prefix}]:`;
+		if (this.#withTimestamp) {
+			const datetime = new Date().toLocaleString().replace(/\//g, ".");
+			prefix = `[${datetime}] ${prefix}`;
+		}
+		return prefix;
+	}
+
+	/**
+	 * Colorize output message
+	 *
+	 * @param {LogLevel} logLevel
+	 * @param {string} prefix
+	 * @param {any} message
+	 * @returns {any[]}
+	 */
+	#colorizePrefixWithMessage(logLevel, prefix, message) {
+		return isPrimitive(message)
+			? [`%c${prefix} ${message}%c`, logLevelToLogStyleMap[logLevel], ""]
+			: [`%c${prefix}%c`, logLevelToLogStyleMap[logLevel], "", message];
 	}
 }
