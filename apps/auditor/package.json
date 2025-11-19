@@ -6,6 +6,7 @@
 		"dev": "builder"
 	},
 	"devDependencies": {
-		"@stepflow/builder": "workspace:*"
+		"@stepflow/builder": "workspace:*",
+		"@stepflow/logger": "workspace:*"
 	}
 }

@@ -41,6 +41,9 @@ importers:
       '@stepflow/builder':
         specifier: workspace:*
         version: link:../../tools/builder
+      '@stepflow/logger':
+        specifier: workspace:*
+        version: link:../../packages/logger
 
   packages/logger:
     dependencies:

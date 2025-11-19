@@ -5,6 +5,8 @@
 
 import { isPrimitive } from "@stepflow/utils";
 
+import { ansiColors } from "./colors.js";
+
 /**
  * @typedef {"DEBUG" | "INFO" | "WARN" | "ERROR"} LogLevel
  */
@@ -35,11 +37,11 @@ const logLevelStat = {
 };
 
 /** @type {Record<LogLevel, string>} */
-const logLevelToLogStyleMap = {
-	DEBUG: "color: orange;",
-	INFO: "color: blue;",
-	WARN: "color: yellow;",
-	ERROR: "color: red;",
+const logLevelToColor = {
+	DEBUG: ansiColors.cyan,
+	INFO: ansiColors.blue,
+	WARN: ansiColors.yellow,
+	ERROR: ansiColors.red,
 };
 
 /** @type {Record<LogLevel, (message?: any, ...optionalParams: any[]) => void>} */
@@ -76,7 +78,7 @@ export class Logger {
 
 	/**
 	 * @param {any} message
-	 * @param {...any[]} optionalParams
+	 * @param {...any} optionalParams
 	 */
 	debug(message, ...optionalParams) {
 		this.#print("DEBUG", message, optionalParams);
@@ -84,7 +86,7 @@ export class Logger {
 
 	/**
 	 * @param {any} message
-	 * @param {...any[]} optionalParams
+	 * @param {...any} optionalParams
 	 */
 	info(message, ...optionalParams) {
 		this.#print("INFO", message, optionalParams);
@@ -92,7 +94,7 @@ export class Logger {
 
 	/**
 	 * @param {any} message
-	 * @param {...any[]} optionalParams
+	 * @param {...any} optionalParams
 	 */
 	warn(message, ...optionalParams) {
 		this.#print("WARN", message, optionalParams);
@@ -100,7 +102,7 @@ export class Logger {
 
 	/**
 	 * @param {any} message
-	 * @param {...any[]} optionalParams
+	 * @param {...any} optionalParams
 	 */
 	error(message, ...optionalParams) {
 		this.#print("ERROR", message, optionalParams);
@@ -111,10 +113,10 @@ export class Logger {
 	 *
 	 * @param {LogLevel} logLevel
 	 * @param {any} message
-	 * @param {...any[]} optionalParams
+	 * @param {any[]} optionalParams
 	 * @returns {void}
 	 */
-	#print(logLevel, message, ...optionalParams) {
+	#print(logLevel, message, optionalParams) {
 		if (!this.#canPrint(logLevel)) return;
 		const prefix = this.#createPrefix();
 		const colorizedPrefixWithMessage = this.#colorizePrefixWithMessage(logLevel, prefix, message);
@@ -137,10 +139,15 @@ export class Logger {
 	 * @returns {string}
 	 */
 	#createPrefix() {
-		let prefix = `[${this.#prefix}]:`;
+		let prefix = this.#prefix.length ? `[${this.#prefix}]` : "";
 		if (this.#withTimestamp) {
-			const datetime = new Date().toLocaleString().replace(/\//g, ".");
-			prefix = `[${datetime}] ${prefix}`;
+			const date = new Date();
+			const logDate = date.toLocaleDateString().replace(/\//g, ".");
+			const logTime = date.toLocaleTimeString();
+			prefix = `[${logDate} ${logTime}]${prefix.length ? " " : ""}${prefix}`;
+		}
+		if (prefix.length || this.#withTimestamp) {
+			prefix += ":";
 		}
 		return prefix;
 	}
@@ -155,7 +162,7 @@ export class Logger {
 	 */
 	#colorizePrefixWithMessage(logLevel, prefix, message) {
 		return isPrimitive(message)
-			? [`%c${prefix} ${message}%c`, logLevelToLogStyleMap[logLevel], ""]
-			: [`%c${prefix}%c`, logLevelToLogStyleMap[logLevel], "", message];
+			? [`${logLevelToColor[logLevel]}${prefix}${prefix.length ? " " : ""}${message}${ansiColors.reset}`]
+			: [`${logLevelToColor[logLevel]}${prefix}${ansiColors.reset}`, message];
 	}
 }

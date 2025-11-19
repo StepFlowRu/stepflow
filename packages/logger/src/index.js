@@ -4,7 +4,7 @@ import { Logger } from "./logger.js";
 /**
  * Create logger for logging node/browser messages
  *
- * @param {LoggerOptions} [options]
+ * @param {Partial<LoggerOptions>} [options]
  * @returns {Logger}
  */
 export function createLogger(options) {
