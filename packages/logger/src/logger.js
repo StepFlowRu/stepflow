@@ -8,7 +8,7 @@ import { isPrimitive } from "@stepflow/utils";
 import { ansiColors } from "./colors.js";
 
 /**
- * @typedef {"DEBUG" | "INFO" | "WARN" | "ERROR"} LogLevel
+ * @typedef {"TRACE" | "DEBUG" | "INFO" | "WARN" | "ERROR"} LogLevel
  */
 
 /**
@@ -30,6 +30,7 @@ const defaultOptions = {
 
 /** @type {Record<LogLevel, number>} */
 const logLevelStat = {
+	TRACE: -1,
 	DEBUG: 0,
 	INFO: 1,
 	WARN: 2,
@@ -37,7 +38,17 @@ const logLevelStat = {
 };
 
 /** @type {Record<LogLevel, string>} */
+const logLevelToString = {
+	TRACE: "Trace",
+	DEBUG: "Debug",
+	INFO: "Info ",
+	WARN: "Warn ",
+	ERROR: "Error",
+};
+
+/** @type {Record<LogLevel, string>} */
 const logLevelToColor = {
+	TRACE: "",
 	DEBUG: ansiColors.cyan,
 	INFO: ansiColors.blue,
 	WARN: ansiColors.yellow,
@@ -46,6 +57,7 @@ const logLevelToColor = {
 
 /** @type {Record<LogLevel, (message?: any, ...optionalParams: any[]) => void>} */
 const logLevelToLogFunction = {
+	TRACE: console.log,
 	DEBUG: console.debug,
 	INFO: console.info,
 	WARN: console.warn,
@@ -59,7 +71,7 @@ export class Logger {
 	/** @type {string} */
 	#prefix;
 	/** @type {LogLevel} */
-	#level;
+	#logLevel;
 	/** @type {boolean} */
 	#withTimestamp;
 
@@ -72,8 +84,16 @@ export class Logger {
 		const { prefix, initialLevel, withTimestamp } = { ...defaultOptions, ...options };
 
 		this.#prefix = prefix;
-		this.#level = initialLevel;
+		this.#logLevel = initialLevel;
 		this.#withTimestamp = withTimestamp;
+	}
+
+	/**
+	 * @param {any} message
+	 * @param {...any} optionalParams
+	 */
+	trace(message, ...optionalParams) {
+		this.#print("TRACE", message, optionalParams);
 	}
 
 	/**
@@ -109,6 +129,15 @@ export class Logger {
 	}
 
 	/**
+	 * Set log level
+	 *
+	 * @param {LogLevel} logLevel
+	 */
+	setLevel(logLevel) {
+		this.#logLevel = logLevel;
+	}
+
+	/**
 	 * Main log function to print messages
 	 *
 	 * @param {LogLevel} logLevel
@@ -118,7 +147,7 @@ export class Logger {
 	 */
 	#print(logLevel, message, optionalParams) {
 		if (!this.#canPrint(logLevel)) return;
-		const prefix = this.#createPrefix();
+		const prefix = this.#createPrefix(logLevel);
 		const colorizedPrefixWithMessage = this.#colorizePrefixWithMessage(logLevel, prefix, message);
 		logLevelToLogFunction[logLevel](...colorizedPrefixWithMessage, ...optionalParams);
 	}
@@ -126,29 +155,31 @@ export class Logger {
 	/**
 	 * Check if logger can print message related to log level
 	 *
-	 * @param {LogLevel} printLevel
+	 * @param {LogLevel} logLevel
 	 * @returns {boolean}
 	 */
-	#canPrint(printLevel) {
-		return logLevelStat[printLevel] >= logLevelStat[this.#level];
+	#canPrint(logLevel) {
+		return logLevelStat[logLevel] >= logLevelStat[this.#logLevel];
 	}
 
 	/**
 	 * Create log prefix
 	 *
+	 * @param {LogLevel} logLevel
 	 * @returns {string}
 	 */
-	#createPrefix() {
-		let prefix = this.#prefix.length ? `[${this.#prefix}]` : "";
+	#createPrefix(logLevel) {
+		let prefix = `(${logLevelToString[logLevel]})`;
+
+		if (this.#prefix.length) {
+			prefix += ` [${this.#prefix}]`;
+		}
 		if (this.#withTimestamp) {
 			const date = new Date();
-			const logDate = date.toLocaleDateString().replace(/\//g, ".");
-			const logTime = date.toLocaleTimeString();
-			prefix = `[${logDate} ${logTime}]${prefix.length ? " " : ""}${prefix}`;
+			prefix = `[${date.toISOString()}] ${prefix}`;
 		}
-		if (prefix.length || this.#withTimestamp) {
-			prefix += ":";
-		}
+		prefix += ":";
+
 		return prefix;
 	}
 

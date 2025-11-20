@@ -6,6 +6,9 @@ function toLogColorFormat(color) {
 	return `\x1b[${color}m`;
 }
 
+/**
+ * ANSI colors format
+ */
 export const ansiColors = {
 	black: toLogColorFormat(30),
 	red: toLogColorFormat(31),
